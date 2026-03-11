@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Простое TMA</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--tg-theme-bg-color, #f0f0f0);
+      color: var(--tg-theme-text-color, #000);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      margin: 0 0 24px;
+      font-size: 2.2rem;
+      text-align: center;
+    }
+
+    .card {
+      background: var(--tg-theme-bg-color, white);
+      border-radius: 16px;
+      padding: 24px 20px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    button {
+      background: var(--tg-theme-button-color, #0088cc);
+      color: var(--tg-theme-button-text-color, white);
+      border: none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 12px 8px;
+      transition: all 0.15s;
+    }
+
+    button:hover {
+      opacity: 0.92;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    #status {
+      margin-top: 20px;
+      font-size: 0.95rem;
+      opacity: 0.8;
+    }
+
+    .user-info {
+      margin: 16px 0;
+      padding: 12px;
+      background: rgba(0,0,0,0.04);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Привет!</h1>
+
+    <div class="user-info" id="user-info">
+      Загружаю данные...
+    </div>
+
+    <button id="btn-main">Нажми меня</button>
+    <button id="btn-close">Закрыть приложение</button>
+
+    <div id="status">Ожидание действия...</div>
+  </div>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    // Инициализация Web App
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();           // разворачиваем на весь экран
+
+    // Тема
+    document.documentElement.style.setProperty('--tg-theme-bg-color', tg.backgroundColor);
+    document.documentElement.style.setProperty('--tg-theme-text-color', tg.textColor);
+    document.documentElement.style.setProperty('--tg-theme-button-color', tg.buttonColor);
+    document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.buttonTextColor);
+
+    // Показываем информацию о пользователе
+    const user = tg.initDataUnsafe.user;
+    const userInfoEl = document.getElementById('user-info');
+
+    if (user) {
+      userInfoEl.innerHTML = `
+        <strong>${user.first_name}${user.last_name ? ' ' + user.last_name : ''}</strong><br>
+        ${user.username ? '@' + user.username + '<br>' : ''}
+        ID: ${user.id}<br>
+        Язык: ${user.language_code || 'не указан'}<br>
+        Premium: ${user.is_premium ? 'да ✓' : 'нет'}
+      `;
+    } else {
+      userInfoEl.textContent = 'Данные пользователя недоступны';
+    }
+
+    // Кнопка 1 — просто счётчик нажатий
+    let count = 0;
+    document.getElementById('btn-main').onclick = () => {
+      count++;
+      document.getElementById('status').textContent = 
+        `Кнопка нажата ${count} раз${count === 1 ? 'у' : 'а'}`;
+      
+      // Можно отправить данные боту
+      tg.sendData(`clicked:${count}`);
+    };
+
+    // Кнопка 2 — закрыть приложение
+    document.getElementById('btn-close').onclick = () => {
+      tg.close();
+    };
+
+    // Реакция на изменение основной кнопки Telegram (MainButton)
+    tg.MainButton.setText('Отправить боту число ' + count);
+    tg.MainButton.onClick(() => {
+      tg.sendData(`mainbtn:${count}`);
+    });
+
+    // Показываем MainButton только после первого клика
+    tg.MainButton.hide();
+
+    document.getElementById('btn-main').addEventListener('click', () => {
+      tg.MainButton.show();
+      tg.MainButton.setText(`Отправить боту: ${count}`);
+    });
+  </script>
+</body>
+</html>
