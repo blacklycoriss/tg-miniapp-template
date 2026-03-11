@@ -31,7 +31,7 @@ func main() {
 	fmt.Println("Отдаётся файл: index.html")
 
 	// Запускаем сервер на порту 8080
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
